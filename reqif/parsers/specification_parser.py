@@ -1,3 +1,4 @@
+import re
 from typing import List, Optional
 
 from reqif.helpers.lxml import stringify_namespaced_children
@@ -95,6 +96,8 @@ class ReqIFSpecificationParser:
                     the_value = xml_attribute.find("THE-VALUE")
                     attribute_value = stringify_namespaced_children(the_value)
                     attribute_value = attribute_value.strip()
+                    attribute_value = re.split("</*THE-VALUE.*?>|</*reqif-xhtml:.+?>", attribute_value)
+                    attribute_value = '\n'.join(list(filter(None, attribute_value)))
                     attribute_name = (
                         xml_attribute.find("DEFINITION")
                         .find("ATTRIBUTE-DEFINITION-XHTML-REF")
