@@ -1,4 +1,5 @@
 import html
+import re
 from typing import List, Optional
 
 from lxml import etree
@@ -72,6 +73,14 @@ ATTRIBUTE_XHTML_TEMPLATE = """\
                 {value}
               </THE-VALUE>
             </ATTRIBUTE-VALUE-XHTML>
+"""
+
+ATTRIBUTE_BOOLEAN_TEMPLATE = """\
+            <ATTRIBUTE-VALUE-BOOLEAN THE-VALUE="{value}">
+              <DEFINITION>
+                <ATTRIBUTE-DEFINITION-BOOLEAN-REF>{definition_ref}</ATTRIBUTE-DEFINITION-BOOLEAN-REF>
+              </DEFINITION>
+            </ATTRIBUTE-VALUE-BOOLEAN>
 """
 
 
@@ -190,6 +199,8 @@ class SpecObjectParser:
                 the_value = attribute_xml.find("THE-VALUE")
                 attribute_value = stringify_namespaced_children(the_value)
                 attribute_value = attribute_value.strip()
+                attribute_value = re.split("</*THE-VALUE.*?>|</*reqif-xhtml:.+?>", attribute_value)
+                attribute_value = '\n'.join(list(filter(None, attribute_value)))
                 attribute_definition_ref = (
                     attribute_xml.find("DEFINITION")
                     .find("ATTRIBUTE-DEFINITION-XHTML-REF")
@@ -316,6 +327,11 @@ class SpecObjectParser:
                 )
             elif attribute.attribute_type == SpecObjectAttributeType.XHTML:
                 output += ATTRIBUTE_XHTML_TEMPLATE.format(
+                    definition_ref=attribute.definition_ref,
+                    value=attribute.value,
+                )
+            elif attribute.attribute_type == SpecObjectAttributeType.BOOLEAN:
+                output += ATTRIBUTE_BOOLEAN_TEMPLATE.format(
                     definition_ref=attribute.definition_ref,
                     value=attribute.value,
                 )
